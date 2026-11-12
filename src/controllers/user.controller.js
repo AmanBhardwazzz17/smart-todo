@@ -82,7 +82,7 @@ const loginUser = asyncHandler(async (req, res) => {
     
     // access token
     // Access token banao. Ye method user.model.js mein hona chahiye.
-    const {accessToken,} = user.generateAccessToken();
+    const accessToken = user.generateAccessToken();
 
     // Password wala field hata ke user nikalo, taaki response mein hash na jaye
     const loggedInUser = await User.findById(user._id).select("-password");
