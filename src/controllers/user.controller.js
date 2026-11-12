@@ -80,20 +80,25 @@ const loginUser = asyncHandler(async (req, res) => {
         throw new ApiError(401, "Invalid Username or email or password");
     }
     
-    // access and refresh token
-    const {accessToken, refreshToken} = await user.generateAccessToken();
-    const loggedInUser = await User.findById(user._id).select("-password -refreshToken");
+    // access token
+    // Access token banao. Ye method user.model.js mein hona chahiye.
+    const {accessToken,} = user.generateAccessToken();
+
+    // Password wala field hata ke user nikalo, taaki response mein hash na jaye
+    const loggedInUser = await User.findById(user._id).select("-password");
 
     // send cookie
+
     const options = {
-        httpOnly: true,
-        secure: false, // set to true in production
-        sameSite: 'strict', 
+        httpOnly: true,        // JavaScript cookie padh nahi sakti (XSS se bachav)
+        secure: false,         // local pe false; https pe deploy karte waqt true
+        sameSite: "lax", 
     };
+    // Cookie ka naam "accessToken" hi rakho, verifyJWT isi naam se dhoondhta hai
     return res
         .status(200)
-        .cookie('refreshToken', refreshToken, options)
-        .json(new ApiResponse(200, {user: loggedInUser, accessToken}, 'User logged in successfully'));
+        .cookie("accessToken", accessToken, options)
+        .json(new ApiResponse(200, {user: loggedInUser}, 'User logged in successfully'));
 });
 
 // Logged-in user ki details wapas bhejta hai. req.user verifyJWT ne set kiya tha.
