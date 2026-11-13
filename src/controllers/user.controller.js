@@ -36,7 +36,7 @@ const registerUser = asyncHandler(async (req,res) => {
     const user = await User.create({username,email,password});
 
     // remove password and refresh token field from response
-    const createdUser = await User.findById(user._id).select("-password -refreshToken");
+    const createdUser = await User.findById(user._id).select("-password");
 
 
     // check for user creation
@@ -57,7 +57,7 @@ const loginUser = asyncHandler(async (req, res) => {
     // username or email
     // find the user
     // password check
-    // access and refresh token
+    // access token
     // send cookie
 
     // req body -> data
