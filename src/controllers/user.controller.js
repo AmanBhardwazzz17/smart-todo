@@ -108,4 +108,19 @@ const getCurrentUser = asyncHandler(async (req, res) => {
         .json(new ApiResponse(200, req.user, 'Current user fetched successfully'));
 });
 
-export {registerUser, loginUser, getCurrentUser};
+// Logout: cookie hata do. verifyJWT pehle chalega, to sirf logged-in user hi logout kar paayega.
+const logoutUser = asyncHandler(async(req,res) =>{
+    // Cookie hatate waqt wahi options dene padte hain jo set karte waqt diye the,
+    // warna browser cookie ko pehchanta nahi aur wo hatti nahi.
+    const options = {
+        httpOnly: true,
+        secure: false,   // local ke liye. Deploy par true.
+        sameSite: "lax"
+    };
+    return res
+        .status(200)
+        .clearCookie("accessToken",options)
+        .json(new ApiResponse(200, {}, "User logged out"));
+});
+
+export {registerUser, loginUser, getCurrentUser, logoutUser};
