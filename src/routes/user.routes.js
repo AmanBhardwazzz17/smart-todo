@@ -1,5 +1,5 @@
 import {Router} from 'express';
-import {registerUser, loginUser, getCurrentUser} from '../controllers/user.controller.js';
+import {registerUser, loginUser, getCurrentUser,logoutUser} from '../controllers/user.controller.js';
 import { verifyjwt } from "../middlewares/auth.middleware.js";
 
 
