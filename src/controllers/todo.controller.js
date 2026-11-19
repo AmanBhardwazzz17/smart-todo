@@ -63,5 +63,53 @@ const deleteTodo = asyncHandler(async(req,res) =>{
     return res.status (200).json(new ApiResponse(200,{}, "Todo Delete"))
 });
 
+// PATCH /api/v1/todos/:id  -> todo ka content / priority edit karo
 
-export { createTodo, getTodos, toggleTodo, deleteTodo };
+const updateTodo = asyncHandler(async(req,res) => {
+    const { id } = req.params;
+    const { content, priority} = req.body
+
+    // PATCH /api/v1/todos/:id  -> todo ka content / priority edit karo
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+        throw new ApiError (400, "Invalid todo Id ")
+    }
+
+    // 2. kam se kam ek field to aani chahiye
+    if (content === undefined && priority === undefined) {
+        throw new ApiError (400, "Send either the content or the priorities")
+    }
+
+    // 3. content bheja hai to khali nahi hona chahiye
+    if (content !== undefined && content.trim() === "") {
+        throw new ApiError(400, "Content cannot be empty")
+    }
+
+    // 4. priority bheji hai to enum mein honi chahiye
+    if (priority !== undefined && !["low","medium","high"].includes(priority)) {
+        throw new ApiError(400, "Priority should be low, medium, or high")
+    }
+
+    // 5. sirf wahi fields update karo jo aayi hain
+    const updates = {};
+    if (content !== undefined) updates.content = content.trim();
+    if (priority !== undefined) updates.priority = priority
+
+    // 6. owner check: query mein owner: req.user._id
+    //    dusre ka todo mile hi nahi, to 404 (403 nahi)
+    const todo = await Todo.findOneAndUpdate(
+        { _id: id, owner: req.user._id },
+        { $set: updates },
+        { new: true,runValidators: true }    // new: true = update hone ke baad wala doc wapas do
+    );
+
+    if (!todo) {
+        throw new ApiError(404, " Todo not found ");
+    }
+
+    return res
+        .status(200)
+        .json(new ApiResponse(200,todo, "Todo updated"));
+        
+});
+
+export { createTodo, getTodos, toggleTodo, deleteTodo,updateTodo };
