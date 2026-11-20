@@ -1,2 +1,64 @@
-<h1>_<strong>Aman__Bhardwazz_ *BOSS*</strong></h1>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Todo App</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="hero">
+    <!-- Top-right corner: login hone par Hello + Logout, nahi to Login button -->
+    <div class="topbar">
+      <span id="welcome" class="welcome hidden"></span>
+      <a href="login.html" id="loginLink" class="top-btn">Login</a>
+      <button id="logoutBtn" class="top-btn hidden">Logout</button>
+    </div>
 
+    <p class="mantra" lang="sa">
+      ॐ कृष्णाय वासुदेवाय हरये परमात्मने।<br />
+      प्रणतः क्लेशनाशाय गोविंदाय नमो नमः॥
+    </p>
+    <h1>Todo App</h1>
+  </header>
+
+  <!-- Login nahi hai to ye dikhega -->
+  <main id="guestSection" class="container guest hidden">
+    <p>Apne todos dekhne ke liye pehle login karo.</p>
+    <a href="login.html" class="add-btn">Login / Register</a>
+  </main>
+
+  <!-- Login hai to ye dikhega -->
+  <main id="appSection" class="container hidden">
+    <nav class="tabs">
+      <button class="tab active" data-tab="today">Today</button>
+      <button class="tab" data-tab="pending">Pending</button>
+      <button class="tab" data-tab="overdue" disabled title="Due date feature baad mein">Overdue</button>
+    </nav>
+
+    <div class="tasks-header">
+      <h2>Tasks</h2>
+      <button id="addBtn" class="add-btn">⊕ Add Task</button>
+    </div>
+
+    <form id="todoForm" class="todo-form hidden">
+      <input type="text" id="todoInput" placeholder="Naya task likho" required />
+      <select id="prioritySelect">
+        <option value="high">High</option>
+        <option value="medium" selected>Medium</option>
+        <option value="low">Low</option>
+      </select>
+      <button type="submit">Save</button>
+    </form>
+
+    <ul id="todoList" class="task-list"></ul>
+
+    <section class="completed">
+      <h3 id="completedToggle">Completed <span id="arrow">▲</span></h3>
+      <ul id="completedList" class="task-list"></ul>
+    </section>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>

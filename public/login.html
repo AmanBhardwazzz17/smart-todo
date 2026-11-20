@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login - Todo App</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="hero small">
+    <div class="topbar">
+      <!-- Wapas todo page par -->
+      <a href="index.html" class="top-btn">← Todo App</a>
+    </div>
+    <h1>Todo App</h1>
+  </header>
+
+  <main class="container auth">
+    <h2 id="authTitle">Login</h2>
+
+    <form id="authForm" class="auth-form">
+      <!-- username sirf register mein dikhega -->
+      <input type="text" id="username" placeholder="Username" class="hidden" />
+      <input type="email" id="email" placeholder="Email" required />
+      <input type="password" id="password" placeholder="Password" required />
+      <button type="submit" id="authSubmit">Login</button>
+    </form>
+
+    <p id="authError" class="error"></p>
+    <p class="switch">
+      <span id="switchText">Account nahi hai?</span>
+      <a href="#" id="switchLink">Register karo</a>
+    </p>
+  </main>
+
+  <script src="auth.js"></script>
+</body>
+</html>

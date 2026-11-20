@@ -3,6 +3,7 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import {Todo} from "../models/todo.model.js"
+import { breakIntoSteps } from "../utils/gemini.js";
 
 // Naya todo: owner body se nahi, token se aata hai (req.user)
 
@@ -109,7 +110,29 @@ const updateTodo = asyncHandler(async(req,res) => {
     return res
         .status(200)
         .json(new ApiResponse(200,todo, "Todo updated"));
-        
 });
 
-export { createTodo, getTodos, toggleTodo, deleteTodo,updateTodo };
+// POST /api/v1/todos/:id/breakdown -> task ke AI steps
+const breakdownTodo = asyncHandler(async (req, res) => {
+    const { id } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+        throw new ApiError(400, "Invalid todo id");
+    }
+
+    // owner check: sirf apna todo mile, warna 404
+    const todo = await Todo.findOne({ _id: id, owner: req.user._id });
+    if (!todo) {
+        throw new ApiError(404, "Todo not found");
+    }
+
+    // AI ko sirf todo ka text bhejo, aur kuch nahi
+    const steps = await breakIntoSteps(todo.content);
+
+    return res
+        .status(200)
+        .json(new ApiResponse(200, { steps }, "Steps ready"));
+
+});
+
+export { createTodo, getTodos, toggleTodo, deleteTodo, updateTodo, breakdownTodo };
