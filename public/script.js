@@ -1,5 +1,10 @@
 const API = "/api/v1";
 
+// Toggle ka URL: apne todo.routes.js ke hisaab se rakho
+//   toggle route /:id/toggle par hai  ->  `${API}/todos/${id}/toggle`   (abhi yahi laga hai)
+//   toggle route /:id par hai         ->  `${API}/todos/${id}`
+const toggleUrl = (id) => `${API}/todos/${id}`;
+
 // ---------- HTML elements pakadna ----------
 const guestSection = document.getElementById("guestSection");
 const appSection = document.getElementById("appSection");
@@ -42,6 +47,29 @@ function showGuest() {
     allTodos = [];
 }
 
+// Har request ke baad: 401 aaya to guest screen dikhao. true = 401 tha
+function handle401(res) {
+    if (res.status === 401) {
+        showGuest();
+        return true;
+    }
+    return false;
+}
+
+// Request fail hui to server ka message alert mein dikhao
+async function showErrorIfFailed(res) {
+    if (res.ok) return false;
+    let message = "Kuch galat ho gaya";
+    try {
+        const data = await res.json();
+        message = data.message || message;
+    } catch (err) {
+        // response JSON nahi tha, default message hi rahega
+    }
+    alert(message);
+    return true;
+}
+
 // ---------- Page khulte hi check: login hai ya nahi ----------
 async function checkLogin() {
     const res = await fetch(`${API}/users/me`);
@@ -63,7 +91,7 @@ function isToday(dateString) {
 
 async function loadTodos() {
     const res = await fetch(`${API}/todos`);
-    if (res.status === 401) return showGuest(); // token expire
+    if (handle401(res)) return; // token expire
     const result = await res.json();
     allTodos = result.data;
     render();
@@ -73,11 +101,12 @@ function render() {
     const pending = allTodos.filter((t) => !t.isComplete);
     const completed = allTodos.filter((t) => t.isComplete);
     const shown = currentTab === "today" ? pending.filter((t) => isToday(t.createdAt)) : pending;
-    fillList(todoList, shown);
-    fillList(completedList, completed);
+    fillList(todoList, shown, true);          // pending: AI button ke saath
+    fillList(completedList, completed, false); // completed: AI button nahi
 }
 
-function fillList(listEl, todos) {
+// withAI = true ho to har card mein "Break down" button lagega
+function fillList(listEl, todos, withAI) {
     listEl.innerHTML = "";
     todos.forEach((todo) => {
         const li = document.createElement("li");
@@ -96,63 +125,57 @@ function fillList(listEl, todos) {
         date.textContent = "🕒 " + new Date(todo.createdAt).toDateString();
 
         const pill = document.createElement("span");
-        pill.className = "pill " + (todo.priority || "medium");
+        pill.className = "priority-pill " + (todo.priority || "medium").toLowerCase();
+        pill.textContent = todo.priority || "medium";
 
-        const del = document.createElement("button");
-        del.className = "del-btn";
-        del.textContent = "🗑";
-        del.addEventListener("click", () => deleteTodo(todo._id));
+        li.appendChild(checkbox);
+        li.appendChild(title);
+        li.appendChild(date);
+        li.appendChild(pill);
 
-        li.append(checkbox, title, date, pill, del);
+        if (withAI) {
+            const aiBtn = document.createElement("button");
+            aiBtn.type = "button";
+            aiBtn.className = "breakdown-btn";
+            aiBtn.textContent = "Break down";
+            aiBtn.addEventListener("click", () => breakDownTodo(todo._id));
+            li.appendChild(aiBtn);
+        }
+
         listEl.appendChild(li);
     });
 }
 
-todoForm.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    const content = todoInput.value.trim();
-    if (!content) return;
+async function toggleTodo(id) {
+    const res = await fetch(toggleUrl(id), { method: "PATCH" });
+    if (handle401(res)) return;
+    if (await showErrorIfFailed(res)) return;
+    await loadTodos();
+}
 
-    await fetch(`${API}/todos`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ content, priority: prioritySelect.value }),
-    });
+async function breakDownTodo(id) {
+    const res = await fetch(`${API}/todos/${id}/breakdown`, { method: "POST" });
+    if (handle401(res)) return;
+    if (await showErrorIfFailed(res)) return;
+    await loadTodos();
+}
 
-    todoInput.value = "";
-    todoForm.classList.add("hidden");
-    loadTodos();
+todoForm.addEventListener("submit", async (event) => {
+    event.preventEvent();
 });
 
-async function toggleTodo(id) {
-    await fetch(`${API}/todos/${id}`, { method: "PATCH" });
-    loadTodos();
-}
-
-async function deleteTodo(id) {
-    await fetch(`${API}/todos/${id}`, { method: "DELETE" });
-    loadTodos();
-}
-
-addBtn.addEventListener("click", () => {
-    todoForm.classList.toggle("hidden");
-    todoInput.focus();
+completedToggle.addEventListener("click", () => {
+    completedList.classList.toggle("hidden");
+    arrow.textContent = completedList.classList.contains("hidden") ? "▶" : "▼";
 });
 
 tabs.forEach((tab) => {
     tab.addEventListener("click", () => {
-        if (tab.disabled) return;
-        tabs.forEach((t) => t.classList.remove("active"));
+        tabs.forEach((item) => item.classList.remove("active"));
         tab.classList.add("active");
         currentTab = tab.dataset.tab;
         render();
     });
 });
 
-completedToggle.addEventListener("click", () => {
-    completedList.classList.toggle("collapsed");
-    arrow.textContent = completedList.classList.contains("collapsed") ? "▼" : "▲";
-});
-
-// ---------- Start ----------
 checkLogin();

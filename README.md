@@ -1,194 +1,104 @@
-# 📝 Smart Todo
+# Smart Todo
 
-![Node.js](https://img.shields.io/badge/Node.js-339933?style=for-the-badge&logo=nodedotjs&logoColor=white)
-![Express](https://img.shields.io/badge/Express-000000?style=for-the-badge&logo=express&logoColor=white)
-![MongoDB](https://img.shields.io/badge/MongoDB-47A248?style=for-the-badge&logo=mongodb&logoColor=white)
-![JWT](https://img.shields.io/badge/JWT-000000?style=for-the-badge&logo=jsonwebtokens&logoColor=white)
-![Status](https://img.shields.io/badge/status-in%20progress-orange?style=for-the-badge)
+A full-stack todo app with user login, private per-user todos, and an AI button that breaks a task into small steps.
 
-A Todo app with user authentication, built from scratch to practice backend fundamentals: routing, middleware, JWT, cookies and MongoDB relations. Every user sees and edits only their own todos.
+Built while learning backend development (Node.js, Express, MongoDB) from the Chai aur Code series by Hitesh Choudhary.
 
-> 🚧 **Work in progress.** I'm building this step by step. The checklist below shows exactly what is done.
+## Features
 
----
+- Register, login and logout with JWT stored in an httpOnly cookie
+- Every todo belongs to its owner: you can only see and change your own todos
+- Add todos with a priority (low, medium, high)
+- Mark todos complete or incomplete, and delete them
+- Today and Pending tabs, plus a collapsible Completed section
+- Input validation on register, login and todos
+- **AI Break down:** press the button on a task and Gemini splits it into 3 to 5 small steps (the API key stays on the server)
 
-## ✨ Features
+## Tech stack
 
-| Feature | Status |
+| Part | Tools |
 |---|---|
-| Project setup, MongoDB connection | ✅ Done |
-| User registration (validation, duplicate check, bcrypt hashing) | ✅ Done |
-| Centralized error handling (`ApiError`, `asyncHandler`) | ✅ Done |
-| Login with JWT stored in an HTTP-only cookie | ✅ Done |
-| Auth middleware (`verifyJWT`) and `GET /users/me` | ✅ Done |
-| Todo CRUD with priority (each user sees only their own todos) | ✅ Done |
-| Frontend: todo UI (tabs, priority, completed section) | 🔨 In progress |
-| Frontend: login and register forms | ⏳ Planned |
-| Logout | ⏳ Planned |
-| Input validation and rate limiting | ⏳ Planned |
-| Refresh token flow | ⏳ Planned |
-| AI feature (break a task into smaller steps) | ⏳ Planned |
-| Deployment | ⏳ Planned |
+| Backend | Node.js, Express 5, ES Modules |
+| Database | MongoDB Atlas with Mongoose |
+| Auth | bcryptjs, jsonwebtoken, cookie-parser |
+| AI | Google Gemini API (called from the server) |
+| Frontend | Plain HTML, CSS and JavaScript (served by Express from `public/`) |
 
----
-
-## 🔌 API Endpoints
-
-Base URL: `/api/v1`
-
-| Method | Endpoint | Description | Auth | Status |
-|---|---|---|---|---|
-| POST | `/users/register` | Register a new user | No | ✅ |
-| POST | `/users/login` | Login, sets `accessToken` cookie | No | ✅ |
-| GET | `/users/me` | Get the logged-in user | Yes | ✅ |
-| POST | `/users/logout` | Clear cookie | Yes | ⏳ |
-| GET | `/todos` | Get my todos | Yes | ✅ |
-| POST | `/todos` | Create a todo | Yes | ✅ |
-| PATCH | `/todos/:id` | Toggle complete | Yes | ✅ |
-| DELETE | `/todos/:id` | Delete a todo | Yes | ✅ |
-
-**Example: login**
-
-```http
-POST /api/v1/users/login
-Content-Type: application/json
-
-{
-  "email": "aman@test.com",
-  "password": "12345678"
-}
-```
-
-Response (`200 OK`): the user without the password field, plus an HTTP-only `accessToken` cookie.
-
-**Example: create a todo** (needs the cookie from login)
-
-```http
-POST /api/v1/todos
-Content-Type: application/json
-
-{
-  "content": "Revise middleware",
-  "priority": "high"
-}
-```
-
-Response (`201 Created`): the todo, including its `owner`.
-
-**Ownership rule:** a user who tries to read, toggle or delete someone else's todo gets `404`, the same as a todo that does not exist.
-
----
-
-## 🧭 How a request flows
-
-```mermaid
-flowchart LR
-    A[Client] --> B[Routes]
-    B --> C[verifyJWT]
-    C --> D[Controller]
-    D --> E[Mongoose Model]
-    E --> F[(MongoDB)]
-    C -. no or bad token .-> G[Error Handler]
-    D -. error .-> G
-    G --> A
-```
-
----
-
-## 🗂️ Project Structure
+## Folder structure
 
 ```
-todo-api/
-├── public/                  # static frontend
-├── src/
-│   ├── controllers/         # user and todo logic
-│   ├── db/                  # MongoDB connection
-│   ├── middlewares/         # auth.middleware.js (verifyJWT)
-│   ├── models/              # user.model.js, todo.model.js
-│   ├── routes/              # user.routes.js, todo.routes.js
-│   ├── utils/               # ApiError, ApiResponse, asyncHandler
-│   ├── app.js               # Express app setup
-│   ├── constants.js
-│   └── index.js             # entry point
-├── .env.example
-├── .gitignore
-└── package.json
+public/            frontend (index.html, login.html, script.js, auth.js, style.css)
+src/
+  controllers/     user.controller.js, todo.controller.js
+  db/              MongoDB connection
+  middlewares/     auth.middleware.js (verifyJWT)
+  models/          user.model.js, todo.model.js
+  routes/          user.routes.js, todo.routes.js
+  utils/           ApiError, ApiResponse, asyncHandler, gemini.js
+  validators/      user.validator.js
+  app.js           Express app, routes, error handler
+  index.js         starts the server
 ```
 
----
+## Run it locally
 
-## 🛠️ Tech Stack
+1. Clone the repo and install packages
 
-- **Node.js** and **Express 5**: server and routing
-- **MongoDB** and **Mongoose**: database and schemas
-- **bcryptjs**: password hashing
-- **jsonwebtoken**: access tokens
-- **cookie-parser**: reading cookies
-- **dotenv**: environment variables
-- **nodemon**: auto-restart in development
-- **HTML, CSS, JavaScript**: frontend (`fetch` API)
+   ```bash
+   git clone <your-repo-url>
+   cd <your-repo-folder>
+   npm install
+   ```
 
----
+2. Copy `.env.example` to `.env` and fill in your own values (never commit `.env`)
 
-## 🚀 Getting Started
+   ```
+   PORT=5500
+   MONGODB_URI=your_mongodb_connection_string
+   ACCESS_TOKEN_SECRET=a_long_random_string
+   ACCESS_TOKEN_EXPIRY=1d
+   GEMINI_API_KEY=your_gemini_api_key
+   ```
 
-```bash
-# 1. Clone
-git clone https://github.com/AmanBhardwazzz17/todo-api.git
-cd todo-api
+   Use the same variable names as in your `.env.example`.
 
-# 2. Install dependencies
-npm install
+3. Start the server
 
-# 3. Create your .env file (see below)
-cp .env.example .env
+   ```bash
+   npm run dev
+   ```
 
-# 4. Run in development
-npm run dev
-```
+4. Open `http://localhost:5500/login.html`, register, log in, and start adding todos.
 
-**.env.example**
+## API
 
-```env
-PORT=8000
-MONGODB_URI=your_mongodb_connection_string
-ACCESS_TOKEN_SECRET=your_random_secret
-ACCESS_TOKEN_EXPIRY=1d
-```
+Base path: `/api/v1`
 
-The server starts only after the database connects successfully. Generate a secret with:
+**Users**
 
-```bash
-node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
-```
+| Method | Endpoint | What it does | Login needed |
+|---|---|---|---|
+| POST | `/users/register` | Create an account | No |
+| POST | `/users/login` | Log in, sets the cookie | No |
+| GET | `/users/me` | Current user | Yes |
+| POST | `/users/logout` | Clears the cookie | Yes |
 
----
+**Todos** (all need login, and only touch the logged-in user's todos)
 
-## 📚 What I learned building this
+| Method | Endpoint | What it does |
+|---|---|---|
+| GET | `/todos` | List my todos |
+| POST | `/todos` | Create a todo (`content`, `priority`) |
+| PATCH | `/todos/:id` | Mark complete or incomplete |
+| DELETE | `/todos/:id` | Delete a todo |
+| POST | `/todos/:id/breakdown` | AI steps for a todo |
 
-- Why the server starts only after the DB connects
-- How middleware works and why `next()` matters
-- Password hashing with a Mongoose `pre("save")` hook
-- Why the token goes in an `httpOnly` cookie
-- Protecting routes with `verifyJWT` and attaching the user to `req.user`
-- Why `owner` comes from the token and never from the request body
-- Correct HTTP status codes (`201`, `400`, `401`, `404`, `409`)
-- Tracked vs untracked files in Git, and why secrets never go in a commit
+Errors come back in one format: `{ success: false, statusCode, message }`.
 
----
+## What I learned
 
-## 🗺️ Roadmap
+Express routing and middleware, Mongoose schemas and relations, password hashing, JWT and cookies, protecting routes, owner-only data access, validation, error handling, calling an external API safely (retries, keeping keys on the server), and connecting a frontend with `fetch`.
 
-1. Logout and login/register forms on the frontend
-2. Validation and rate limiting
-3. Refresh token flow
-4. AI feature: break a task into smaller steps (API key stays on the backend only)
-5. Deploy and set `secure: true` on the cookie
+## Pending
 
----
-
-## 👤 Author
-
-**Aman Bhardwazz**
-BS CS & Data Analytics student at IIT Patna
-GitHub: [@AmanBhardwazzz17](https://github.com/AmanBhardwazzz17)
+- [ ] Deploy (Render)
